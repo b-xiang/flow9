@@ -50,6 +50,8 @@ buildLinkageMap() {
             link3way("wasm_fold", unpackArgumentType(wt, 1))),
         Pair("Native.foldi", \x, wt -> 
             link3way("wasm_foldi", unpackArgumentType(wt, 1))),
+        Pair("Native.replace", \x, wt -> 
+            link3way("wasm_replace", unpackArrayArgumentType(wt))),
     ];
     pairs2tree(linkages);
 }
