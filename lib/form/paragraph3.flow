@@ -45,7 +45,7 @@ Ghosted ::= Empty, Ghost, CoordinateInspectElement, InspectGhost;
 	);
 
 // Each word to be placed in the paragraph, including the metrics and as well as any ghost constructed
-ParaWord(word : ParaAtomic, metrics : Behaviour<FormMetrics>, ghosted : Ghosted, form: GhostForm);
+ParaWord(word : ParaAtomic, metrics : Behaviour<FormMetrics>, ghosted : Ghosted, form : GhostForm, rtl : bool);
 
 renderParagraph(p : [ParagraphElement], s : [ParagraphStyle]) -> Form {
 
@@ -208,20 +208,20 @@ expandGlueFragments(elements : [ParaElement], glueNext : bool, running : List<Pa
 makeParaWord(w : ParaAtomic) -> ParaWord {
 	s2w = \s : Pair<Form, Behaviour<FormMetrics>> -> {
 		if (!isGhostable(s.first)) {
-			ParaWord(s.first, s.second, Empty(), Empty());
+			ParaWord(s.first, s.second, Empty(), Empty(), false);
 		} else {
 			x = make(0.0);
 			y = make(0.0);
-			ParaWord(Empty(), s.second, Ghost(x, y, s.first), Empty());
+			ParaWord(Empty(), s.second, Ghost(x, y, s.first), Empty(), false);
 		}
 	}
 	switch (w : ParaAtomic) {
-		NewLine(): ParaWord(w, const(zeroMetrics), Empty(), Empty());
+		NewLine(): ParaWord(w, const(zeroMetrics), Empty(), Empty(), false);
 		// We choose the middle part
 		LinePart(f, p, e): getDynamicFormSize(p) |> s2w;
 		Space(s): {
 			dynFormSizePair = getDynamicFormSize2(s, true);
-			ParaWord(Space(dynFormSizePair.first), dynFormSizePair.second, Empty(), Empty());
+			ParaWord(Space(dynFormSizePair.first), dynFormSizePair.second, Empty(), Empty(), false);
 		}
 		ParaOneWord(wd): {
 			oc = optimizeCols(wd);
@@ -231,14 +231,14 @@ makeParaWord(w : ParaAtomic) -> ParaWord {
 		InspectElement(i, x, y, wh, lh, ln, e): {
 			switch (e : InspectableElement) {
 				Text(t, s): {
-					ParaWord(e, const(getStaticFormSize(e)), CoordinateInspectElement(i, x, y, wh, lh, e), Empty());
+					ParaWord(e, const(getStaticFormSize(e)), CoordinateInspectElement(i, x, y, wh, lh, e), Empty(), false);
 				}
 				Space(t): {
-					ParaWord(t, const(getStaticFormSize(t)), CoordinateInspectElement(i, x, y, wh, lh, t), Empty());
+					ParaWord(t, const(getStaticFormSize(t)), CoordinateInspectElement(i, x, y, wh, lh, t), Empty(), false);
 				}
 				default: {
 					s = getDynamicFormSize(cast(e : InspectableElement -> Form));
-					ParaWord(Empty(), s.second, InspectGhost(x, y, wh, lh, ln, s.first), Empty());
+					ParaWord(Empty(), s.second, InspectGhost(x, y, wh, lh, ln, s.first), Empty(), false);
 				}
 			}
 		}
@@ -627,7 +627,7 @@ getWordText(w: ParaWord) -> string {
 	}
 }
 
-setWordText(w: ParaWord, t: string) -> ParaWord {
+setWordText(w: ParaWord, t: string, rtl : bool) -> ParaWord {
 	switch(w.word) {
 		Text(__, s): ParaWord(
 			Text(t, s), w.metrics, w.ghosted,
@@ -635,12 +635,13 @@ setWordText(w: ParaWord, t: string) -> ParaWord {
 				CoordinateInspectElement(index, xc, yc, wh, lineHeight, form): CoordinateInspectElement(index, xc, yc, wh, lineHeight, Text(t, getFormTextStyle(form)));
 				Text(__, fs): Text(t, fs);
 				default: w.form;
-			}
+			},
+			rtl
 		);
 		default: w;
 	};
 }
 
 setWordForm(word: ParaWord, form: GhostForm) -> ParaWord {
-	ParaWord(word.word, word.metrics, word.ghosted, form);
+	ParaWord(word.word, word.metrics, word.ghosted, form, false);
 };

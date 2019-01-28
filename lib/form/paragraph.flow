@@ -718,7 +718,9 @@ breakTextFragment(text : string, style : [CharacterStyle], moreLineBreaks : bool
 		}
 	}; // loop1
 
-	^loop1(0, indexingInit, init);
+t1 =   ^loop1(0, indexingInit, init);
+t2 = list2array(t1);
+t1
 }
 
 makeSpace(space : string, style : [CharacterStyle]) -> Space {

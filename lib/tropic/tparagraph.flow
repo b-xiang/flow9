@@ -100,7 +100,7 @@ getTWordText(w: TWord) -> string {
 	};
 };
 
-setTWordText(w: TWord, t: string) -> TWord {
+setTWordText(w: TWord, t: string, rtl : bool) -> TWord {
 	switch(w) {
 		TText(__, s): TText(t, s);
 		default: w;
