@@ -132,11 +132,11 @@ debugWord(w: BiDiWord<?>, getText: (?) -> string) -> string {
 	};
 }
 
-groupByCounterDirReverse(ws: [BiDiWord<?>], getText: (?) -> string) -> [[BiDiWord<?>]] {
+groupByCounterDirReverse(ws: [BiDiWord<?>], getText: (?) -> string) -> Pair<[[BiDiWord<?>]], DirectionAndMajority> {
 	rtl = getDefaultRtl();
 	defaultDir = if (rtl) uc_dir_rtl else uc_dir_ltr;
 	counterDir = if (rtl) uc_dir_ltr else uc_dir_rtl;
-	if (length(ws) < 2) [ws] else fold(
+	t = if (length(ws) < 2) Pair([ws], DirectionAndMajority(0, false)) else fold(
 		tail(ws), Pair([[ws[0]]], getWordDirectionAndMajority(ws[0], getText)), \acc: Pair<[[BiDiWord<?>]], DirectionAndMajority>, w: BiDiWord<?> -> {
 			wdm = getWordDirectionAndMajority(w, getText);
 			Pair(
@@ -147,15 +147,16 @@ groupByCounterDirReverse(ws: [BiDiWord<?>], getText: (?) -> string) -> [[BiDiWor
 				if (wdm.m > 1) wdm else acc.second
 			)
 		}
-	).first;
+	);
+	t
 }
 
 reflowLineToBiDi(ws: [BiDiWord<?>], isEmpty: (?) -> bool, getText: (?) -> string, setText: (?, string, bool) -> ?) -> [BiDiWord<?>] {
 	// Grouping words with counter-direction into subarrays, and reversing order.
-	ltrGrouping = groupByCounterDirReverse(ws, getText);
+	ltrGrouping = groupByCounterDirReverse(ws, getText).first;
 
 	// Repeating same for each group and reverse them back — to cut group trailing punctuation, and counter-directed groups now in reverse order.
-	ltrCleanGrouping = concatA(map(ltrGrouping, \lgws -> reverseA(groupByCounterDirReverse(lgws, getText))));
+	ltrCleanGrouping = concatA(map(ltrGrouping, \lgws -> reverseA(groupByCounterDirReverse(lgws, getText).first)));
 
 	// Filtering out empty fragments and joining all groups back together.
 	r = filter(
