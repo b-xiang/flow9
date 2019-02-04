@@ -1,0 +1,26 @@
+import material/material2tropic;
+
+main() {
+	manager = makeMaterialManager([]);
+
+	content =
+		MTextInput(
+			// make("some text"),
+			make(""),
+			[
+				// ReadOnly(true),
+				// MNativeInput(true)
+				MLabel("Label"),
+				MFloatingLabel(),
+				MOutlined(),
+				MWidth(200.)
+			], [
+				MOnRightClick(\ -> println("right click"))
+			]
+		)
+		// |> (\m -> MDebugMetrics(blue, m))
+		// |> (\m -> MBorder4(16., m))
+		;
+	
+	mrender(manager, true, content);
+}

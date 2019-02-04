@@ -143,12 +143,13 @@ MTextInputField(manager : MaterialManager, content : DynamicBehaviour<string>, m
 		else
 			TEmpty();
 	textLabel = MTextInputLabel(inputState);
-	textUnderline = MTextInputUnderline(inputState);
+	textUnderline = if (inputState.outlined) TEmpty() else MTextInputUnderline(inputState);
 	icons = MTextInputIcons(inputState, m2t);
 
 	addBorders = \input : Tropic, p : MFocusGroup ->
-		TBorder(if (inputState.noLeftBorder) 8. else 0., inputState.inputBorders.top, 0., 0., input)
-		|> (\f -> TGroup2(textLabel, f))
+		input
+		|> (\f -> TBorder(if (inputState.noLeftBorder) 8. else 0., inputState.inputBorders.top, 0., 0., f))
+		|> (\f -> TGroup2(f, textLabel))
 		|> (\f ->
 			if (inputState.dynamicSize)
 				eitherMap(
@@ -556,6 +557,7 @@ MTextInputLabel(inputState : MInputState) -> Tropic {
 						)
 					)
 				)
+				|> (\t -> TCopySize(t, \tr -> TRectangle([MFill(MWhite())], tr), false))
 				|> (\t -> TBorderT(zero, faddition(fmultiply(percent, const(fls.betweenLabels + fls.labelSizeFocused)), const(fls.aboveLabel)), zero, zero, t))
 			)
 		},
@@ -588,6 +590,7 @@ MTextInputLabel(inputState : MInputState) -> Tropic {
 		else
 			f
 	)
+	|> (\t -> if (inputState.outlined) TBorder(16., -4., 0., 0., t) else t)
 	|> (\f -> TFixSize(f, TEmpty()))
 }
 

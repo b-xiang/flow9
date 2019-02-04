@@ -52,6 +52,7 @@ export {
 		textStyle : [CharacterStyle],
 		mTextStyleDisabled : [MTextStyle],
 		tTextMetrics : FormMetrics,
+		outlined : bool,
 		smallEdit : bool,
 		label : string,
 		dynamicSize : bool,
@@ -284,6 +285,7 @@ makeMInputState(manager : MaterialManager, style : [MAutoCompleteStyle], state :
 	filterFn = tryExtractStruct(state, MInputFilter(\c, __ -> c));
 	textInputCursorShape = make(DefaultCursor());
 	noLeftBorder = contains(style, MInputNoLeftBorder());
+	outlined = contains(style, MOutlined());
 
 	//Text Style
 	mTextStyle =
@@ -1014,6 +1016,7 @@ makeMInputState(manager : MaterialManager, style : [MAutoCompleteStyle], state :
 		textStyle,
 		mTextStyleDisabled,
 		tTextMetrics,
+		outlined,
 		smallEdit,
 		label,
 		dynamicSize,
@@ -2344,7 +2347,17 @@ makeNativeEditorView(manager : MaterialManager, parent : MFocusGroup, state : [M
 			)
 		)
 	)
-	|> (\f -> TGroup2SameMetrics(TDisplay("MTextInputSize"), f))
+	|> (\f -> TGroup2SameMetrics(
+			TDisplay("MTextInputSize")
+			|> (\f2 -> if (inputState.outlined) 
+					TSelect(inputState.mfocus.focused, \foc ->
+						TFrame(16., 4., [MStroke(if (foc) inputState.color else MGrey(300)), StrokeWidth(if (foc) 2. else 1.)], f2)
+					)
+					|> TBorderTop(-16.)
+				else f2),
+			if (inputState.outlined) TBorderLeft(16.)(f) else f
+		)
+	)
 	|> (\f -> TLet("MTextInputSize", TAttachBox2(inputSize, inpWH, TEmpty()), f))
 	|> (\f ->
 		TLet(
