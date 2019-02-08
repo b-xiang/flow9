@@ -5,11 +5,6 @@ import string;
 import ds/list;
 import expect;
 
-// replace [func]
-// concat [func]
-// filter [func]
-
-
 FooBar ::= Foo, Bar, Baz, Sbar;
 	Foo(n : int);
 	Bar(m : double);
@@ -20,6 +15,20 @@ FooBar ::= Foo, Bar, Baz, Sbar;
 foo2bar(x : Foo) -> Bar {
 	Bar(cast(x.n : int -> double));
 }
+
+aff() {
+	"a1"
+}
+bff() {
+	"b2"
+}
+cff() {
+	 "c3"
+}
+aaff() {
+	"aa1"
+}
+
 
 testSubrange() {
 	arr = [1, 2, 3, 4];
@@ -90,10 +99,16 @@ testReplace() {
 
 	expect2(211, replace([[1], [2,1], [3,2,1], [4,3,2,1]], 3, [3,2,1]) == [[1], [2,1], [3,2,1], [3,2,1]]);
 	expect2(212, replace([Foo(1), Foo(2), Foo(3), Foo(4)], 2, Foo(2)) == [Foo(1), Foo(2), Foo(2), Foo(4)]);
-	// expect2(213, replace([\->"a1", \->"b2", \->"c3"], 0, \->"aa1") == [\->"aa1", \->"b2", \->"c3"]); // fails. Even when when trying: replace([\->"a1", \->"b2", \->"c3"], 0, \->"a1")
-	expect2(214, replace([true, false, false, true], 2, true) == [true, false, true, true]);
+	expect2(213, replace([true, false, false, true], 2, true) == [true, false, true, true]);
+	
+	res10 = replace([\->"a1", \->"b2", \->"c3"], 0, \->"aa1");
+	expect2(214, res10[0]() == "aa1" && res10[1]() == "b2" && res10[2]() == "c3"); //comparison of the 2 arrays doesn't work. But we can show that the function calls are correct after the call to replace. 
 
+	res11 = replace([aff, bff, cff], 0, aaff);
+	expect2(215, res11[0]() == "aa1" && res11[1]() == "b2" && res11[2]() == "c3");
+	
 
+	// expect2(299, [aff, bff, cff] == [aff, bff, cff]); // Dummy test to show that arrays of functions cannot be compared properly
 }
 
 testConcat() {
@@ -125,7 +140,8 @@ testConcat() {
 	arru : [FooBar] = [Foo(1), Bar(2.0), Foo(3), Sbar("hello")];
 	expect2v(312, concat(arru1, arru2), arru);
 
-	// expect2(313, concat([\->"a1"], [\->"b2", \->"c3"]) == [\->"a1", \->"b2", \->"c3"]); //fails
+	res = concat([\->"a1"], [\->"b2", \->"c3"]);
+	expect2(313, res[0]() == "a1" && res[1]() == "b2" && res[2]() == "c3");
 }
 
 
@@ -447,7 +463,7 @@ testFilter() {
 			Foo(n) : true;
 			default : false;
 		}) == [Foo(1), Foo(3)]);
-	// expect2(808, filter([\->"a1", \->"b2", \->"c3"], \f -> f() == "b2") == [\->"b2"]); // fails
+	expect2(808, filter([\->"a1", \->"b2", \->"c3"], \f -> f() == "b2")[0]() == "b2");
 }
 
 testIteriUntil() {
@@ -562,6 +578,7 @@ main() {
 	testElemIndex();
 	testCallbacks(1100);
 	testList2array();
+	testCallbacks2(getInt());
 	
 	expectFinish();
 }
