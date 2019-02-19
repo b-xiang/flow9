@@ -108,10 +108,10 @@ class FlowSprite extends Sprite {
 
 	private function onRemoved() : Void {
 		if (removeTextureFromCache(texture) && !loaded) {
-			var nativeWidget = texture.baseTexture.source;
+/*			var nativeWidget = texture.baseTexture.source;
 
 			nativeWidget.removeAttribute('src');
-
+ 	
 			if (nativeWidget != null) {
 				var parentNode : Dynamic = nativeWidget.parentNode;
 
@@ -123,6 +123,7 @@ class FlowSprite extends Sprite {
 			}
 
 			texture.baseTexture.destroy();
+*/
 		}
 
 		texture = Texture.EMPTY;
