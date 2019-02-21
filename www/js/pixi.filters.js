@@ -95,16 +95,16 @@ function allocate_render_texture(texture, renderer, w, h)
 {
 	if (texture == null)
 	{
-		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution);
+		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution / 2.0);
 	}
 
-	if (texture.width != w || texture.height != h || texture.resolution != renderer.resolution)
+	if (texture.width != w || texture.height != h || texture.resolution != renderer.resolution / 2.0)
 	{
 		// resize broken with resolution != 1
 		//texture.resize(w|0, h|0, true);
 
 		texture.destroy();
-		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution);
+		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution / 2.0);
 	}
 	return texture;
 }
@@ -229,7 +229,7 @@ PIXI.filters.DropShadowFilter.prototype.drawToCanvas = function (input_tex, aux_
 	out_ctx.shadowOffsetX = Math.cos(angle) * dist * res;
 	out_ctx.shadowOffsetY = Math.sin(angle) * dist * res;
 
-	out_ctx.setTransform(1, 0, 0, 1, 0, 0);
+	out_ctx.setTransform(2, 0, 0, 2, 0, 0);
 	out_ctx.drawImage(input_tex.baseTexture._canvasRenderTarget.canvas, x * res, y * res);
 	out_ctx.restore();
 
@@ -294,7 +294,7 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 		var dist = filter.distance;
 		var angle = filter.angle;
 		var color = PIXI.utils.hex2rgb(filter.color);
-		var res = renderer.resolution;
+		var res = renderer.resolution / 2.0;
 		var ctx = renderer.context;
 
 		ctx.save();
@@ -367,7 +367,7 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 
 		if (AlphaMask_use_getImageData)
 		{
-			apply_alpha_mask(main_ctx, mask_ctx, w, h, renderer.resolution);
+			apply_alpha_mask(main_ctx, mask_ctx, w, h, renderer.resolution / 2.0);
 		}
 		else
 		{
@@ -410,9 +410,9 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 
 	if (rvlast != null)
 	{
-		var res = renderer.resolution;
+		var res = renderer.resolution / 2.0;
 
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.setTransform(2, 0, 0, 2, 0, 0);
 		ctx.drawImage(rvlast.baseTexture._canvasRenderTarget.canvas, x * res, y * res);
 	}
 

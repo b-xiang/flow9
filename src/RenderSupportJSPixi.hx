@@ -44,7 +44,7 @@ class RenderSupportJSPixi {
 	private static var CacheTextsAsBitmap : Bool = Util.getParameter("cachetext") == "1";
 	private static var DebugAccessOrder : Bool = Util.getParameter("accessorder") == "1";
 	/* Antialiasing doesn't work correctly on mobile devices */
-	private static var Antialias : Bool = Util.getParameter("antialias") != null ? Util.getParameter("antialias") == "1" : !NativeHx.isTouchScreen() && (RendererType != "webgl" || detectExternalVideoCard());
+	private static var Antialias : Bool = Util.getParameter("antialias") != null ? Util.getParameter("antialias") == "1" : false;
 	private static var RoundPixels : Bool = Util.getParameter("roundpixels") != null ? Util.getParameter("roundpixels") != "0" : true;
 	private static var UseVideoTextures : Bool = Util.getParameter("videotexture") != "0";
 
@@ -92,7 +92,7 @@ class RenderSupportJSPixi {
 	private static function getBackingStoreRatio() : Float {
 		var ratio = ((Util.getParameter("resolution") != null) ?
 			Std.parseFloat(Util.getParameter("resolution")) :
-			((Browser.window.devicePixelRatio != null)? Browser.window.devicePixelRatio : 1.0));
+			((Browser.window.devicePixelRatio != null)? Browser.window.devicePixelRatio : 1.0) * 2.0);
 
 		if (Platform.isSafari && !Platform.isMobile) { // outerWidth == 0 on mobile safari (and most other mobiles)
 			ratio *= Browser.window.outerWidth / Browser.window.innerWidth;
@@ -4733,7 +4733,7 @@ private class PixiText extends TextField {
 
 	// Use the property to set up custom antialias factor
 	// Implemented by enlarging font size and decreasing scale of text clip
-	private var textScaleFactor : Int = Platform.isMacintosh ? 2 : 1;
+	private var textScaleFactor : Float = 2;
 
 	public function new() {
 		super();
@@ -4796,11 +4796,15 @@ private class PixiText extends TextField {
 		var from_flow_style : FontStyle = FlowFontStyle.fromFlowFont(fontfamily);
 		var fontStyle = fontslope != "" ? fontslope : from_flow_style.style;
 
+		fontsize = fontsize < 0.6 ? 0.6 : fontsize; // pixi crashes when size < 0.6
+		var roundedFontsize = untyped __js__("Math.pow(2, Math.round(Math.log2(fontsize)) + 1)");
+		textScaleFactor = roundedFontsize / fontsize;
+
 		style =
 			{
-				fontSize : textScaleFactor * (fontsize < 0.6 ? 0.6 : fontsize), // pixi crashes when size < 0.6
+				fontSize : roundedFontsize,
 				fill : "#" + StringTools.hex(RenderSupportJSPixi.removeAlphaChannel(fillcolor), 6),
-				letterSpacing : letterspacing,
+				letterSpacing : letterspacing * textScaleFactor,
 				fontFamily : from_flow_style.family,
 				fontWeight : fontweight != 400 ? "" + fontweight : from_flow_style.weight,
 				fontStyle : fontStyle
@@ -4822,7 +4826,7 @@ private class PixiText extends TextField {
 
 		makeTextClip(text, style);
 
-		textClip.x = -letterSpacing;
+		textClip.x = -letterSpacing * textScaleFactor;
 
 		if ((style.align == "center" || style.align == "right") && fieldWidth > 0) {
 			if (clipWidth < fieldWidth) {
@@ -4920,7 +4924,7 @@ private class PixiText extends TextField {
 	private function updateClipMetrics() {
 		var metrics = textClip.children.length > 0 ? textClip.getLocalBounds() : getTextClipMetrics(textClip);
 
-		clipWidth = Math.max(metrics.width - letterSpacing * 2, 0) / textScaleFactor;
+		clipWidth = Math.max(metrics.width, 0) / textScaleFactor - letterSpacing * 2;
 		clipHeight = metrics.height / textScaleFactor;
 
 		hitArea = new Rectangle(letterSpacing, 0, clipWidth + letterSpacing, clipHeight);
