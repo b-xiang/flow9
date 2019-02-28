@@ -4797,7 +4797,7 @@ private class PixiText extends TextField {
 		var fontStyle = fontslope != "" ? fontslope : from_flow_style.style;
 
 		fontsize = fontsize < 0.6 ? 0.6 : fontsize; // pixi crashes when size < 0.6
-		var roundedFontsize = untyped __js__("Math.pow(2, Math.round(Math.log2(fontsize)) + 1)");
+		var roundedFontsize = untyped __js__("Math.pow(2, Math.round(Math.log(fontsize) / Math.log(2)) + 1)");
 		textScaleFactor = roundedFontsize / fontsize;
 
 		style =
