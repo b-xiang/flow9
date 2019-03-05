@@ -95,16 +95,16 @@ function allocate_render_texture(texture, renderer, w, h)
 {
 	if (texture == null)
 	{
-		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution / 2.0);
+		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution);
 	}
 
-	if (texture.width != w || texture.height != h || texture.resolution != renderer.resolution / 2.0)
+	if (texture.width != w || texture.height != h || texture.resolution != renderer.resolution)
 	{
 		// resize broken with resolution != 1
 		//texture.resize(w|0, h|0, true);
 
 		texture.destroy();
-		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution / 2.0);
+		return PIXI.RenderTexture.create(w|0, h|0, PIXI.settings.SCALE_MODE.DEFAULT, renderer.resolution);
 	}
 	return texture;
 }
@@ -229,7 +229,7 @@ PIXI.filters.DropShadowFilter.prototype.drawToCanvas = function (input_tex, aux_
 	out_ctx.shadowOffsetX = Math.cos(angle) * dist * res;
 	out_ctx.shadowOffsetY = Math.sin(angle) * dist * res;
 
-	out_ctx.setTransform(2, 0, 0, 2, 0, 0);
+	out_ctx.setTransform(1, 0, 0, 1, 0, 0);
 	out_ctx.drawImage(input_tex.baseTexture._canvasRenderTarget.canvas, x * res, y * res);
 	out_ctx.restore();
 
@@ -285,8 +285,9 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 		return this._CF_originalRenderCanvas(renderer);
 	}
 
-	if (this.children != null && this.children.length == 1 &&
-		(this.children[0].graphicsData != null || (this.children[0].children != null && this.children[0].children.length > 0 && this.children[0].children[0].graphicsData != null)) &&
+	if ((this.graphicsData != null && (this.children == null || this.children.length == 0)) ||
+		(this.children != null && this.children.length == 1 &&
+		(this.children[0].graphicsData != null || (this.children[0].children != null && this.children[0].children.length > 0 && this.children[0].children[0].graphicsData != null))) &&
 		this._alphaMask == null && filters != null && filters.length == 1 && filters[0] instanceof PIXI.filters.DropShadowFilter) {
 		// Special fast case
 		// Shadow around graphics
@@ -294,7 +295,7 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 		var dist = filter.distance;
 		var angle = filter.angle;
 		var color = PIXI.utils.hex2rgb(filter.color);
-		var res = renderer.resolution / 2.0;
+		var res = renderer.resolution;
 		var ctx = renderer.context;
 
 		ctx.save();
@@ -367,7 +368,7 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 
 		if (AlphaMask_use_getImageData)
 		{
-			apply_alpha_mask(main_ctx, mask_ctx, w, h, renderer.resolution / 2.0);
+			apply_alpha_mask(main_ctx, mask_ctx, w, h, renderer.resolution);
 		}
 		else
 		{
@@ -410,9 +411,9 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 
 	if (rvlast != null)
 	{
-		var res = renderer.resolution / 2.0;
+		var res = renderer.resolution;
 
-		ctx.setTransform(2, 0, 0, 2, 0, 0);
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.drawImage(rvlast.baseTexture._canvasRenderTarget.canvas, x * res, y * res);
 	}
 

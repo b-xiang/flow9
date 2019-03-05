@@ -92,7 +92,7 @@ class RenderSupportJSPixi {
 	private static function getBackingStoreRatio() : Float {
 		var ratio = ((Util.getParameter("resolution") != null) ?
 			Std.parseFloat(Util.getParameter("resolution")) :
-			((Browser.window.devicePixelRatio != null)? Browser.window.devicePixelRatio : 1.0) * 2.0);
+			((Browser.window.devicePixelRatio != null)? Browser.window.devicePixelRatio : 1.0) * (Platform.isChrome ? 2.0 : 1.0));
 
 		if (Platform.isSafari && !Platform.isMobile) { // outerWidth == 0 on mobile safari (and most other mobiles)
 			ratio *= Browser.window.outerWidth / Browser.window.innerWidth;
@@ -4797,7 +4797,7 @@ private class PixiText extends TextField {
 		var fontStyle = fontslope != "" ? fontslope : from_flow_style.style;
 
 		fontsize = fontsize < 0.6 ? 0.6 : fontsize; // pixi crashes when size < 0.6
-		var roundedFontsize = untyped __js__("Math.pow(2, Math.round(Math.log(fontsize) / Math.log(2)) + 1)");
+		var roundedFontsize = Platform.isChrome ? untyped __js__("Math.pow(2, Math.round(Math.log(fontsize) / Math.log(2)) + 1)") : fontsize;
 		textScaleFactor = roundedFontsize / fontsize;
 
 		style =
