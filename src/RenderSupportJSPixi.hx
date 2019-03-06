@@ -733,7 +733,8 @@ class RenderSupportJSPixi {
 
 		workaroundTextMetrics();
 		// Required for MaterialIcons measurements
-		untyped __js__("PIXI.TextMetrics.METRICS_STRING = '|Éq█'");
+		if (!Platform.isFirefox) untyped __js__("PIXI.TextMetrics.METRICS_STRING = '|Éq▉'");
+
 		workaroundRendererDestroy();
 		workaroundProcessInteractive();
 
