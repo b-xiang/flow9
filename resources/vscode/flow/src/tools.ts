@@ -1,6 +1,5 @@
 import { spawn, ChildProcess, spawnSync } from 'child_process';
 
-
 export function run_cmd(cmd: string, wd: string, args: string[], outputProc: (string) => void, childProcesses: ChildProcess[]):
     ChildProcess {
     const options = wd && wd.length > 0 ? { cwd: wd, shell: true } : { shell : true};
@@ -34,8 +33,8 @@ export function shutdownFlowc() {
     }, []);
 }
 
-export function launchFlowc(projectRoot: string) {
-    return run_cmd("flowc1", projectRoot, ["server-mode=1"], (s) => {
+export function launchFlowc(serverDirectory : string) {
+    return run_cmd("flowc1", serverDirectory, ["server-mode=1"], (s) => {
         console.log(s);
     }, []);
 }

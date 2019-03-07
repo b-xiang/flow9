@@ -71,9 +71,10 @@ A lot of tips: https://medium.freecodecamp.org/here-are-some-super-secret-vs-cod
     1. `flow.root` - that shall point to the root of Flow repo (typically `c:\flow9`, this is also the default value)
     2. `flow.compiler` - the compiler to use. Supports same notation as in `flow.config` file - i.e. `nekocompiler`, `flowcompiler`, `flowc`, or `0`, `1`, `2`. Default is flowc, and that is fine.
     3. `flow.compilerBackend` - the backend to use for compiler. Acceptable values are `flowcpp`, `java`, `auto` (default, current best practice), `manual` (verbose command - as specified).
-    4. `flow.userCompilerServer` - whether to use or not the compiler server. Only works with `flowc`
+    4. `flow.useCompilerServer` - whether to use or not the compiler server. Only works with `flowc`
     compiler. Defaults to true.
-    4. `flow.projectRoot` - force IDE to use specified path as a project root and resolve all files to run against it when running `flowcpp` command. No need to change this. Use a workspace instead. But can be useful in multi-root workspaces. Meant to be used on workspace or workspace folder level. The value is one of the following:
+    5. `flow.compilerServerDirectory` - Use a selected dirctory to run flowc server. Default is `c:/area9/flow9/server`.
+    6. `flow.projectRoot` - force IDE to use specified path as a project root and resolve all files to run against it when running `flowcpp` command. No need to change this. Use a workspace instead. But can be useful in multi-root workspaces. Meant to be used on workspace or workspace folder level. The value is one of the following:
         * absolute path - use this path as project root
         * name of workspace folder in the workspace - always use specified workspace folder as a project root
         * relative path - treat as relative path to the first workspace folder, use as project root

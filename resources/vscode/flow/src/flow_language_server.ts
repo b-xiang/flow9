@@ -4,6 +4,7 @@ import {
 	createConnection, ProposedFeatures, InitializeParams, VersionedTextDocumentIdentifier, WorkspaceFolder, Location, Range, Position
 } from 'vscode-languageserver';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import * as tools from './tools';
 import * as fs from 'fs';
 import Uri from 'vscode-uri';
@@ -70,10 +71,16 @@ connection.onDidOpenTextDocument(params => {
 	validateTextDocument(params.textDocument);
 });
 
-function spawnFlowcServer(projectRoot: string) {
-	if (null == flowServer && globalSettings.useCompilerServer) {
-		flowServer = tools.launchFlowc(projectRoot);
-	}
+export function startFlowcServer(serverDirectory : string) {
+    if (null == flowServer && globalSettings.useCompilerServer) {
+        flowServer = tools.launchFlowc(serverDirectory);
+    }
+}
+
+export function stopFlowcServer() {
+    if (null != flowServer) {
+        flowServer.kill('SIGKILL');
+    }
 }
 
 function getFsPath(uri: string): string {
@@ -172,8 +179,9 @@ async function findObject(fileUri: string, lineNum: number, columnNum: number, o
 
     console.log(`Looking at position ${columnNum} at line ${lineNum}, token: ${token}\n`);
 
-	// this will spawn a flowc server in the project root unless already spawned
-	spawnFlowcServer(paths.projectRoot);
+	// this will spawn a flowc server unless already spawned
+    let serverDirectory : string = vscode.workspace.getConfiguration("flow").get("compilerServerDirectory");
+    startFlowcServer(serverDirectory);
 
 	let serverArgs = !globalSettings.useCompilerServer ? ["server=0"] : [];
 
