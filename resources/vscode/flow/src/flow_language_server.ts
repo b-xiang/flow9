@@ -71,13 +71,21 @@ connection.onDidOpenTextDocument(params => {
 	validateTextDocument(params.textDocument);
 });
 
-export function startFlowcServer(serverDirectory : string) {
+connection.onNotification((method: string, handler: any) => {
+	if (method == 'startFlowcServer') {
+		startFlowcServer(handler)
+	} else if (method == 'stopFlowcServer') {
+		stopFlowcServer()
+	}
+});
+
+function startFlowcServer(serverDirectory : string) {
     if (null == flowServer && globalSettings.useCompilerServer) {
         flowServer = tools.launchFlowc(serverDirectory);
     }
 }
 
-export function stopFlowcServer() {
+function stopFlowcServer() {
     if (null != flowServer) {
         flowServer.kill('SIGKILL');
     }

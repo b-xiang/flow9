@@ -14,7 +14,6 @@ import * as tools from "./tools";
 import * as updater from "./updater";
 import * as meta from '../package.json';
 import * as simplegit from 'simple-git/promise';
-import { startFlowcServer, stopFlowcServer } from './flow_language_server'
 
 interface ProblemMatcher {
     name: string,
@@ -67,21 +66,11 @@ export function activate(context: vscode.ExtensionContext) {
         updateFlowRepo();
     })
 
-    let startFlowcServer_command = vscode.commands.registerCommand('flow.startFlowcServer', () => {
-        let serverDirectory : string = vscode.workspace.getConfiguration("flow").get("compilerServerDirectory");
-        startFlowcServer(serverDirectory);
-    })
-    let stopFlowcServer_command = vscode.commands.registerCommand('flow.stopFlowcServer', () => {
-        stopFlowcServer();
-    })
-
     context.subscriptions.push(flowcpp_command);
     context.subscriptions.push(getCompiler_command);
     context.subscriptions.push(compileNeko_command);
     context.subscriptions.push(run_command);
     context.subscriptions.push(updateFlow_command);
-    context.subscriptions.push(startFlowcServer_command);
-    context.subscriptions.push(stopFlowcServer_command);
 
    	// The server is implemented in node
 	let serverModule = context.asAbsolutePath(path.join('out', 'flow_language_server.js'));
@@ -102,7 +91,19 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	// Create the language client and start the client.
-	client = new LanguageClient('flowLanguageServer', 'Flow Language Server', serverOptions, clientOptions);
+    client = new LanguageClient('flowLanguageServer', 'Flow Language Server', serverOptions, clientOptions);
+
+    let startFlowcServer_command = vscode.commands.registerCommand('flow.startFlowcServer', () => {
+        let serverDirectory : string = vscode.workspace.getConfiguration("flow").get("compilerServerDirectory");
+        client.sendNotification('startFlowcServer', serverDirectory);
+    })
+    let stopFlowcServer_command = vscode.commands.registerCommand('flow.stopFlowcServer', () => {
+        client.sendNotification('stopFlowcServer');
+    })
+
+    context.subscriptions.push(startFlowcServer_command);
+    context.subscriptions.push(stopFlowcServer_command);
+
 	// Start the client. This will also launch the server
     client.start();
 
