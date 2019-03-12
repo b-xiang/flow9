@@ -193,7 +193,7 @@ async function findObject(fileUri: string, lineNum: number, columnNum: number, o
 
 	let serverArgs = !globalSettings.useCompilerServer ? ["server=0"] : [];
 
-	let flowcArgs = serverArgs.concat([paths.documentPath, operation + token]).concat(extra_args);
+	let flowcArgs = serverArgs.concat([paths.documentPath, operation + token]).concat(extra_args).concat([`exp-line=${lineNum}`]).concat([`exp-column=${columnNum}`]);
 	connection.console.log("Launching command: flowc1 " + flowcArgs.join(" ") + 
 		"\n\t\t in folder: " + paths.projectRoot);
 
