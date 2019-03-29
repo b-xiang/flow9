@@ -88,16 +88,13 @@ indexJavaStructs(program : FiProgram, modules : Tree<string, JavaModule>) -> Tre
 		)
 	);
 	// Assign id values
-	init = Pair(0, makeTree());
-	res = foldTree(struct_list, init, \name, pair, acc -> {
-		id = acc.first;
+	foldTree(struct_list, makeTree(), \name, pair, acc -> {
 		javaModule = pair.first;
 		struct = pair.second;
 		fields = map(struct.args, \arg -> JavaStructField(arg.name, arg.type, arg.ismutable));
-		data = JavaStruct(id, name, javaModule, fields);
-		Pair(id + 1, setTree(acc.second, name, data));
+		data = JavaStruct(name, javaModule, fields);
+		setTree(acc, name, data);
 	});
-	res.second;
 }
 
 indexJavaGlobals(gctx : JavaGlobalContext) -> void {
@@ -238,7 +235,7 @@ generateJavaStructList(gctx : JavaGlobalContext) -> string {
 	pushstr("\tstatic final Object[] arr_empty = new Object[0];\n");
 	inits = foldTree(gctx.cstructs, [], \sname, sdata : JavaStruct,acc -> {
 		if (length(sdata.fields) == 0) {
-			pushstr("\tstatic final SingletonStruct str_" + sname + " = SingletonStruct.make(" + i2s(sdata.id) + ",\"" + sname + "\");\n");
+			pushstr("\tstatic final SingletonStruct str_" + sname + " = SingletonStruct.make(\"" + sname + "\");\n");
 			arrayPush(acc, "\t\t\tstr_" + sname);
 		} else {
 			arrayPush(acc, "\t\t\tnew Struct_" + sname + "()");
@@ -356,7 +353,6 @@ generateJavaStructDefs(gctx : JavaGlobalContext, output_dir : string) -> void {
 			});
 
 			// metadata
-			pushstr("\n\tpublic int getTypeId() { return " + i2s(sdata.id) + "; }\n");
 			pushstr("\tpublic String getTypeName() { return \"" + sname + "\"; }\n");
 
 			pushstr("\n\tprivate static final String[] field_names = new String[] {\n\t\t");
@@ -384,9 +380,8 @@ generateJavaStructDefs(gctx : JavaGlobalContext, output_dir : string) -> void {
 
 			// comparison
 			pushstr("\tpublic int compareTo(Struct other_gen) {\n");
-			pushstr("\t\tif (other_gen == this) return 0;\n");
-			pushstr("\t\tint tmp = other_gen.getTypeId();\n");
-			pushstr("\t\tif (tmp != " + i2s(sdata.id) + ") return " + i2s(sdata.id) + "-tmp;\n");
+			pushstr("\t\tint tmp = \"" + sname + "\".compareTo(other_gen.getTypeName()) ;\n");
+			pushstr("\t\tif (tmp != 0) return tmp;\n");
 			pushstr("\t\tStruct_" + sname + " other = (Struct_" + sname + ")other_gen;\n");
 
 			tmp = fold(fnametypes, false, \tmp, f -> {
@@ -510,7 +505,7 @@ emitJavaStatement(ctx0 : JavaScopeContext, code0 : FiExp, retloc : JavaReturnLoc
 			argstr = emitJavaExpression(arg_code.second, arg_code.first, "Struct");
 			tmpvar = javaNewLocalName(ctx.func.next_local_id, "_tmp");
 			jctxPushStr(ctx, ctx.indent + "Struct " + tmpvar + " = " +  argstr + ";\n");
-			jctxPushStr(ctx, ctx.indent + "switch (" + tmpvar + ".getTypeId()) {\n");
+			jctxPushStr(ctx, ctx.indent + "switch (" + tmpvar + ".getTypeName()) {\n");
 			subctx = jctxPushIndent(ctx, "\t");
 			tmpvar2 = javaNewLocalName(ctx.func.next_local_id, "_tmp");
 			inputvar = switch (x) {
@@ -524,7 +519,7 @@ emitJavaStatement(ctx0 : JavaScopeContext, code0 : FiExp, retloc : JavaReturnLoc
 				} else {
 					switch (lookupTree(ctx.func.gctx.cstructs, case.struct)) {
 						Some(cstruct): {
-							jctxPushStr(ctx, ctx.indent + "case " + i2s(cstruct.id) + "/*" + cstruct.name + "*/: {\n");
+							jctxPushStr(ctx, ctx.indent + "case \"" + cstruct.name + "\": {\n");
 
 							has_args = exists(case.argNames, \a -> a != "__");
 
@@ -1031,22 +1026,20 @@ emitJavaFnWrapper(gctx : JavaGlobalContext, csmodule : JavaModule, ftype : FiTyp
 }
 
 emitJavaCompare(ctx : JavaScopeContext, op : string, e1 : FiExp, e2 : FiExp, rtype : string) -> string {
-	singletonNo = \e -> {
+	singletonName = \e -> {
 		switch(e) {
 			FiCallPrim(cop, __, __, __): {
 				switch(cop) {
 					FcStructPrim(sname): {
 						switch (lookupTree(ctx.func.gctx.cstructs, sname)) {
-							Some(sinfo): {
-								if (sinfo.fields == []) sinfo.id else -1;
-							}
-							None(): -1;
+							Some(sinfo): if (sinfo.fields == []) sinfo.name else "";
+							None(): "";
 						}
 					}
-					default: -1;
+					default: "";
 				}
 			}
-			default: -1;
+			default: "";
 		}
 	}
 	opwrap = \ts -> {
@@ -1067,8 +1060,8 @@ emitJavaCompare(ctx : JavaScopeContext, op : string, e1 : FiExp, e2 : FiExp, rty
 		}
 
 		aempty = "runtime.arr_empty";
-		rs1 = singletonNo(e1);
-		rs2 = singletonNo(e2);
+		rs1 = singletonName(e1);
+		rs2 = singletonName(e2);
 		if ((re1 == aempty || re2 == aempty) && (op == "==" || op == "!=")) {
 			if (re1 == aempty) {
 				"((Object[])" + re2 + ").length " + op + " 0";
@@ -1077,11 +1070,13 @@ emitJavaCompare(ctx : JavaScopeContext, op : string, e1 : FiExp, e2 : FiExp, rty
 			} else {
 				wrap();
 			}
-		} else if ((rs1 > 0 || rs2 > 0) && (op == "==" || op == "!=")) {
-			if (rs1 > 0) {
-				"((Struct)" + re2 + ").getTypeId() " + op + " " + i2s(rs1);
-			} else if (rs2 > 0) {
-				"((Struct)" + re1 + ").getTypeId() " + op + " " + i2s(rs2);
+		} else if ((rs1 != "" || rs2 != "" ) && (op == "==" || op == "!=")) {
+			if (rs1 != "") {
+				equals = "((Struct)" + re2 + ").getTypeName().equals(\"" + rs1 + "\")";
+				if (op == "==") equals else "!" + equals;
+			} else if (rs2 != "") {
+				equals = "((Struct)" + re1 + ").getTypeName().equals(\"" + rs2 + "\")";
+				if (op == "==") equals else "!" + equals;
 			} else {
 				wrap();
 			}

@@ -3,23 +3,20 @@ package com.area9innovation.flow;
 import java.util.Hashtable;
 
 public final class SingletonStruct extends Struct {
-	private final int id;
 	private final String name;
 	private final String name_rep;
 
-	private SingletonStruct(int id, String name) {
-		this.id = id;
+	private SingletonStruct(String name) {
 		this.name = name;
 		this.name_rep = name+"()";
 	}
 
 	private static final Hashtable<String,SingletonStruct> cache = new Hashtable<String,SingletonStruct>();
 
-	public static SingletonStruct make(int id, String name) {
-		String key = id + ":" + name;
-		SingletonStruct item = cache.get(key);
+	public static SingletonStruct make(String name) {
+		SingletonStruct item = cache.get(name);
 		if (item == null)
-			cache.put(key, item = new SingletonStruct(id, name));
+			cache.put(name, item = new SingletonStruct(name));
 		return item;
 	}
 
@@ -27,9 +24,6 @@ public final class SingletonStruct extends Struct {
 	private static final RuntimeType[] no_types = new RuntimeType[] {};
 	private static final Object[] no_fields = new Object[] {};
 
-	public int getTypeId() {
-		return id;
-	}
 	public String getTypeName() {
 		return name;
 	}
@@ -53,6 +47,6 @@ public final class SingletonStruct extends Struct {
 		return name_rep;
 	}
 	public int compareTo(Struct other) {
-		return id-other.getTypeId();
+		return name.compareTo(other.getTypeName());
 	}
 }

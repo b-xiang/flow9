@@ -130,7 +130,7 @@ public class Native extends NativeHost {
 	}
 
 	public final String toBinary(Object value) {
-		Map<Integer, Integer> structIdxs = new HashMap();
+		Map<String, Integer> structIdxs = new HashMap();
 		List<Struct> structDefs = new ArrayList();
 
 		StringBuilder buf = new StringBuilder();
@@ -176,7 +176,7 @@ public class Native extends NativeHost {
 		writeCharValue(high, buf);
 	}
 
-	final void writeBinaryValue(Object value, StringBuilder buf, Map<Integer, Integer> structIdxs, List<Struct> structDefs) {
+	final void writeBinaryValue(Object value, StringBuilder buf, Map<String, Integer> structIdxs, List<Struct> structDefs) {
 		if (value == null) {
 			writeCharValue(0xffff, buf);
 		} else if (value instanceof String) {
@@ -233,18 +233,18 @@ public class Native extends NativeHost {
 	        writeCharValue(b ? 0xFFFE : 0xFFFD, buf);
 	    } else if (value instanceof Struct) {
 	    	Struct s = (Struct) value;
-	    	int struct_id = s.getTypeId();
+	    	String struct_name = s.getTypeName();
 
 			Object[] struct_fields = s.getFields();
 			RuntimeType[] field_types = s.getFieldTypes();
 			int fields_count = struct_fields.length;
 
 			int struct_idx = 0;
-			if (structIdxs.containsKey(struct_id)) {
-				struct_idx = structIdxs.get(struct_id);
+			if (structIdxs.containsKey(struct_name)) {
+				struct_idx = structIdxs.get(struct_name);
 			} else {
 				struct_idx = structDefs.size();
-				structIdxs.put(struct_id, struct_idx);
+				structIdxs.put(struct_name, struct_idx);
 				structDefs.add(s);
 			}
 
@@ -324,7 +324,7 @@ public class Native extends NativeHost {
 	public final boolean isSameStructType(Object a, Object b) {
 		return a != null && b != null &&
 		       a instanceof Struct && b instanceof Struct &&
-		       ((Struct)a).getTypeId() == ((Struct)b).getTypeId();
+		       ((Struct)a).getTypeName().equals(((Struct)b).getTypeName());
 	}
 
 	public final boolean isSameObj(Object a, Object b) {

@@ -66,7 +66,6 @@ public abstract class FlowRuntime {
 			return true;
 		}
 		if (a instanceof Struct) {
-			if (((Struct)a).getTypeId() != ((Struct)b).getTypeId()) return false;
 			if (((Struct)a).compareTo(((Struct)b)) != 0) return false;
 
 			return true;

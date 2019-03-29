@@ -1,7 +1,6 @@
 package com.area9innovation.flow;
 
 public abstract class Struct implements Comparable<Struct>, Cloneable {
-	public abstract int getTypeId();
 	public abstract String getTypeName();
 	public abstract String[] getFieldNames();
 	public abstract RuntimeType[] getFieldTypes();
