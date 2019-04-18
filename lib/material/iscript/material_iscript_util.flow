@@ -645,7 +645,8 @@ substituteHttpRequest(manager : MaterialManager) -> () -> void {
 							// 	println("status");
 							// 	println(status);
 							// }
-						}
+						},
+						nop1
 					)
 				},
 				\ -> {
@@ -660,7 +661,8 @@ substituteHttpRequest(manager : MaterialManager) -> () -> void {
 							// println("Unknown request");
 							// println("status");
 							// println(status);
-						}
+						},
+						nop1
 					)
 				}
 			)
@@ -693,7 +695,8 @@ subscribeToHttpRequest(manager : MaterialManager) -> () -> void {
 			},
 			\status -> {
 				// addRecord(IScriptRequestStatus(status));
-			}
+			},
+			nop1
 		);
 	});
 

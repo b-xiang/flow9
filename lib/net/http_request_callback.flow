@@ -4,7 +4,8 @@ export {
 	HttpRequestCallbacks(
 		onData : (string) -> void,
 		onError : (string) -> void,
-		onStatus : (int) -> void
+		onStatus : (int) -> void,
+		onHeaders : ([KeyValue]) -> void
 	);
 
 	setHttpRequestCallback(cb : (url : string, postMethod : bool, headers : [KeyValue], params : [KeyValue]) -> HttpRequestCallbacks) -> void;
