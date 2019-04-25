@@ -6,8 +6,9 @@ import pixi.core.renderers.canvas.CanvasRenderer;
 
 using DisplayObjectHelper;
 
-class VideoClip extends FlowContainer {
-	private var nativeWidget : Dynamic;
+class VideoClip extends NativeWidgetClip {
+	public static var ShowNativeWidget = false;
+	public static var CanAutoPlay = false;
 
 	private var metricsFn : Float -> Float -> Void;
 	private var playFn : Bool -> Void;
@@ -23,16 +24,6 @@ class VideoClip extends FlowContainer {
 	private var loaded : Bool = false;
 
 	private static var playingVideos : Array<VideoClip> = new Array<VideoClip>();
-
-	public static var CanAutoPlay = false;
-
-	public function getWidth() : Float {
-		return nativeWidget != null ? nativeWidget.width : 0;
-	}
-
-	public function getHeight() : Float {
-		return nativeWidget != null ? nativeWidget.height : 0;
-	}
 
 	public static inline function NeedsDrawing() : Bool {
 		if (playingVideos.filter(function (v) { return v.getClipWorldVisible(); }).length > 0) {
@@ -74,9 +65,17 @@ class VideoClip extends FlowContainer {
 		return '';
 	}
 
-	public function updateNativeWidget() {
+	public override function updateNativeWidget() {
 		if (!nativeWidget.paused) {
 			checkTimeRange(nativeWidget.currentTime, true);
+			invalidateTransform();
+		}
+
+		if (ShowNativeWidget) {
+			super.updateNativeWidget();
+		} else {
+			nativeWidget.style.display = "none";
+			styleChanged = false;
 		}
 	}
 
@@ -84,7 +83,7 @@ class VideoClip extends FlowContainer {
 		try { // Crashes in IE sometimes
 			if (currentTime < startTime && startTime < nativeWidget.duration) {
 				nativeWidget.currentTime = startTime;
-				positionFn(nativeWidget.currentTime);
+				RenderSupportJSPixi.defer(function () { positionFn(nativeWidget.currentTime); });
 			} else if (endTime > 0 && endTime > startTime && currentTime >= endTime) {
 				if (nativeWidget.paused) {
 					nativeWidget.currentTime = endTime;
@@ -92,9 +91,9 @@ class VideoClip extends FlowContainer {
 					nativeWidget.currentTime = startTime;
 					if (!nativeWidget.loop) nativeWidget.pause();
 				}
-				positionFn(nativeWidget.currentTime);
+				RenderSupportJSPixi.defer(function () { positionFn(nativeWidget.currentTime); });
 			} else if (videoResponse) {
-				positionFn(nativeWidget.currentTime);
+				RenderSupportJSPixi.defer(function () { positionFn(nativeWidget.currentTime); });
 			} else {
 				nativeWidget.currentTime = currentTime;
 			}
@@ -104,7 +103,7 @@ class VideoClip extends FlowContainer {
 	private function createVideoClip(filename : String, startPaused : Bool) : Void {
 		deleteVideoClip();
 
-		nativeWidget = Browser.document.createElement("video");
+		createNativeWidget("video");
 		nativeWidget.crossorigin = determineCrossOrigin(filename);
 		nativeWidget.autoplay = !startPaused;
 		nativeWidget.src = filename;
@@ -114,7 +113,6 @@ class VideoClip extends FlowContainer {
 			if (playingVideos.indexOf(this) < 0) playingVideos.push(this);
 		}
 
-		RenderSupportJSPixi.on("drawframe", updateNativeWidget);
 		once("removed", deleteVideoClip);
 
 		createStreamStatusListeners();
@@ -125,7 +123,7 @@ class VideoClip extends FlowContainer {
 	}
 
 	public function renderCanvas(renderer : pixi.core.renderers.canvas.CanvasRenderer) {
-		if (!this.visible || this.worldAlpha <= 0 || !this.renderable)
+		if (!this.visible || this.worldAlpha <= 0 || !this.renderable || ShowNativeWidget)
 		{
 			return;
 		}
@@ -148,8 +146,6 @@ class VideoClip extends FlowContainer {
 			// Force video unload
 			nativeWidget.removeAttribute('src');
 			nativeWidget.load();
-
-			RenderSupportJSPixi.off("drawframe", updateNativeWidget);
 
 			deleteSubtitlesClip();
 
@@ -269,6 +265,10 @@ class VideoClip extends FlowContainer {
 
 		nativeWidget.width = nativeWidget.videoWidth;
 		nativeWidget.height = nativeWidget.videoHeight;
+
+		widgetWidth = nativeWidget.width;
+		widgetHeight = nativeWidget.height;
+
 		metricsFn(nativeWidget.width, nativeWidget.height);
 
 		checkTimeRange(nativeWidget.currentTime, true);
