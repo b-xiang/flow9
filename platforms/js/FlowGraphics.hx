@@ -14,7 +14,8 @@ class FlowGraphics extends Graphics {
 	private var scrollRect : FlowGraphics;
 	private var _visible : Bool = true;
 	private var clipVisible : Bool = false;
-	private var transformChanged : Bool = true;
+	private var transformChanged : Bool = false;
+	private var childrenTransformChanged : Bool = false;
 
 	private var pen = new Point(0.0, 0.0);
 	private var localBounds = new Bounds();

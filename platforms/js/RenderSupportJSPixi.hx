@@ -26,8 +26,7 @@ class RenderSupportJSPixi {
 	public static var RendererType : String = Util.getParameter("renderer") != null ? Util.getParameter("renderer") : untyped Browser.window.useRenderer;
 
 	private static var MousePos : Point = new Point(0.0, 0.0);
-	private static var PixiStageChanged : Bool = true;
-	private static var TransformChanged : Bool = true;
+	public static var PixiStageChanged : Bool = true;
 	private static var isEmulating : Bool = false;
 	private static var AnimationFrameId : Int = -1;
 
@@ -281,7 +280,7 @@ class RenderSupportJSPixi {
 		WindowTopHeight = cast (getScreenSize().height - Browser.window.innerHeight);
 		Browser.window.addEventListener('resize', onBrowserWindowResize, false);
 		Browser.window.addEventListener('message', receiveWindowMessage); // Messages from crossdomaid iframes
-		Browser.window.addEventListener('focus', function () { PixiStage.invalidateStage(); requestAnimationFrame(); }, false);
+		Browser.window.addEventListener('focus', function () { PixiStage.invalidateTransform(); requestAnimationFrame(); }, false);
 	}
 
 	private static inline function initClipboardListeners() {
@@ -382,8 +381,7 @@ class RenderSupportJSPixi {
 		}
 
 		PixiStage.broadcastEvent("resize", backingStoreRatio);
-		PixiStage.transformChanged = true;
-		PixiStage.invalidateStage();
+		PixiStage.invalidateTransform();
 
 		// Render immediately - Avoid flickering on Safari and some other cases
 		render();
@@ -760,9 +758,7 @@ class RenderSupportJSPixi {
 		if (PixiStageChanged || VideoClip.NeedsDrawing()) {
 			PixiStageChanged = false;
 
-			if (TransformChanged) {
-				TransformChanged = false;
-
+			if (untyped PixiStage.childrenTransformChanged) {
 				PixiRenderer.render(PixiStage, null, true, null, false);
 			} else {
 				PixiRenderer.render(PixiStage, null, true, null, true);
@@ -784,7 +780,6 @@ class RenderSupportJSPixi {
 	}
 
 	public static inline function InvalidateStage() : Void {
-		TransformChanged = true;
 		PixiStageChanged = true;
 	}
 
@@ -1487,15 +1482,13 @@ class RenderSupportJSPixi {
 	}
 
 	private static inline function updateTransform() : Void {
-		if (TransformChanged && PixiStage != null) {
+		if (PixiStage != null && untyped PixiStage.childrenTransformChanged) {
 			var cacheParent = PixiStage.parent;
 			PixiStage.parent = untyped PixiStage._tempDisplayObjectParent;
 
 			PixiStage.updateTransform();
 
 			PixiStage.parent = cacheParent;
-
-			TransformChanged = false;
 		}
 	}
 
@@ -1704,7 +1697,7 @@ class RenderSupportJSPixi {
 
 	// native addFilters(native, [native]) -> void = RenderSupport.addFilters;
 	public static function addFilters(clip : DisplayObject, filters : Array<Filter>) : Void {
-		clip.invalidateStage();
+		clip.invalidateTransform();
 		untyped clip.filterPadding = 0.0;
 		untyped clip.glShaders = false;
 
@@ -1894,7 +1887,7 @@ class RenderSupportJSPixi {
 	public static var IsFullWindow : Bool = false;
 	public static function toggleFullWindow(fw : Bool) : Void {
 		if (FullWindowTargetClip != null && IsFullWindow != fw) {
-			PixiStage.invalidateStage();
+			PixiStage.invalidateTransform();
 
 			if (Platform.isIOS) {
 				FullWindowTargetClip = untyped getFirstVideoWidget(untyped FullWindowTargetClip) || FullWindowTargetClip;

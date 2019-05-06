@@ -635,8 +635,9 @@ class PixiWorkarounds {
 				{
 					const child = this.children[i];
 
-					if (child.visible)
+					if (child.visible && (transformChanged || child.childrenTransformChanged))
 					{
+						child.childrenTransformChanged = false;
 						child.updateTransform(transformChanged);
 					}
 				}
@@ -676,8 +677,9 @@ class PixiWorkarounds {
 				{
 					const child = this.children[i];
 
-					if (child.visible)
+					if (child.visible && (transformChanged || child.childrenTransformChanged))
 					{
+						child.childrenTransformChanged = false;
 						child.updateTransform(transformChanged);
 					}
 				}

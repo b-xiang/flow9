@@ -8,7 +8,8 @@ class FlowSprite extends Sprite {
 	private var scrollRect : FlowGraphics;
 	private var _visible : Bool = true;
 	private var clipVisible : Bool = false;
-	private var transformChanged : Bool = true;
+	private var transformChanged : Bool = false;
+	private var childrenTransformChanged : Bool = false;
 
 	private var url : String = "";
 	private var loaded : Bool = false;
@@ -151,7 +152,7 @@ class FlowSprite extends Sprite {
 			texture = Texture.EMPTY;
 		}
 
-		invalidateStage();
+		invalidateTransform();
 	}
 
 	private function onError() : Void {
@@ -166,8 +167,6 @@ class FlowSprite extends Sprite {
 	private function onLoaded() : Void {
 		try {
 			metricsFn(texture.width, texture.height);
-
-			invalidateStage();
 
 			renderable = true;
 			loaded = true;

@@ -5,45 +5,36 @@ import pixi.core.display.Bounds;
 class DisplayObjectHelper {
 	public static var Redraw : Bool = Util.getParameter("redraw") != null ? Util.getParameter("redraw") == "1" : false;
 
-	public static inline function invalidateStage(clip : DisplayObject) : Void {
+	public static inline function invalidateTransform(clip : DisplayObject) : Void {
+		// if (untyped clip.transformChanged) {
+		// 	return;
+		// }
+
+		untyped clip.transformChanged = true;
+		untyped clip.childrenTransformChanged = true;
+
 		if (getClipWorldVisible(clip)) {
-			if (DisplayObjectHelper.Redraw && (untyped clip.updateGraphics == null || untyped clip.updateGraphics.parent == null)) {
-				var updateGraphics = new FlowGraphics();
-
-				if (untyped clip.updateGraphics == null) {
-					untyped clip.updateGraphics = updateGraphics;
-					updateGraphics.beginFill(0x0000FF, 0.2);
-					updateGraphics.drawRect(0, 0, 100, 100);
-				} else {
-					updateGraphics = untyped clip.updateGraphics;
-				}
-
-				untyped updateGraphics._visible = true;
-				untyped updateGraphics.visible = true;
-				untyped updateGraphics.clipVisible = true;
-				untyped updateGraphics.renderable = true;
-
-				untyped __js__("PIXI.Container.prototype.addChild.call({0}, {1})", clip, updateGraphics);
-
-				Native.timer(100, function () {
-					untyped __js__("if ({0}.parent) PIXI.Container.prototype.removeChild.call({0}.parent, {0})", updateGraphics);
-					RenderSupportJSPixi.InvalidateStage();
-				});
-			}
-
 			RenderSupportJSPixi.InvalidateStage();
+		}
+
+		if (clip.parent != null) {
+			invalidateChildrenTransform(clip.parent);
+
+			if (getClipWorldVisible(clip.parent)) {
+				RenderSupportJSPixi.InvalidateStage();
+			}
 		}
 	}
 
-	public static inline function invalidateTransform(clip : DisplayObject) : Void {
-		untyped clip.transformChanged = true;
-		invalidateStage(clip);
-	}
+	public static inline function invalidateChildrenTransform(clip : DisplayObject) : Void {
+		if (untyped clip.childrenTransformChanged) {
+			return;
+		}
 
-	public static inline function invalidateTransformByParent(clip : DisplayObject) : Void {
-		untyped clip.transformChanged = true;
+		untyped clip.childrenTransformChanged = true;
+
 		if (clip.parent != null) {
-			invalidateStage(clip.parent);
+			invalidateChildrenTransform(clip.parent);
 		}
 	}
 
@@ -105,7 +96,7 @@ class DisplayObjectHelper {
 				updateClipWorldVisible(clip);
 			}
 
-			invalidateTransformByParent(clip);
+			invalidateTransform(clip);
 		}
 	}
 
@@ -145,7 +136,7 @@ class DisplayObjectHelper {
 				updateClipWorldVisible(clip);
 			}
 
-			invalidateTransformByParent(clip);
+			invalidateTransform(clip);
 		}
 	}
 
@@ -250,8 +241,6 @@ class DisplayObjectHelper {
 
 		setClipX(scrollRect, left);
 		setClipY(scrollRect, top);
-
-		invalidateStage(clip);
 	}
 
 	public static inline function removeScrollRect(clip : FlowContainer) : Void {
@@ -269,8 +258,6 @@ class DisplayObjectHelper {
 
 			clip.scrollRect = null;
 		}
-
-		invalidateStage(clip);
 	}
 
 	// setClipMask cancels setScrollRect and vice versa
@@ -314,8 +301,6 @@ class DisplayObjectHelper {
 
 		maskContainer.once("childrenchanged", function () { setClipMask(clip, maskContainer); });
 		clip.emit("graphicschanged");
-
-		invalidateStage(clip);
 	}
 
 	public static function getMaskedBounds(clip : DisplayObject) : Bounds {
