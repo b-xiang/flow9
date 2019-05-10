@@ -12,10 +12,15 @@ class Module {
 
 		// Do a test of casing of filenames
 		var testCasing = filename;
-		if (testCasing.charAt(1) == ":") {
-			// Windows machine. Skip the drive letter which is upper case
-			testCasing = testCasing.substr(2);
+		// if (testCasing.charAt(1) == ":") {
+			// // Windows machine. Skip the drive letter which is upper case
+			// testCasing = testCasing.substr(2);
+		// }
+		
+		if (testCasing.lastIndexOf("/") != -1) {
+			testCasing = testCasing.substr(testCasing.lastIndexOf("/") + 1);
 		}
+
 		testCasing = StringTools.replace(testCasing, "\\", "/");
 
 		if (testCasing != testCasing.toLowerCase()
