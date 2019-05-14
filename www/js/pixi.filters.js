@@ -305,7 +305,7 @@ PIXI.Container.prototype._renderFilterCanvas = function (renderer)
 
 		renderer.gl.render(this, null, true, null, true);
 
-		const ctx = renderer.context;
+		const ctx = renderer.view.getContext('2d', {desynchronized : true});
 
 		ctx.globalAlpha = this.worldAlpha;
 		ctx.setTransform(1, 0, 0, 1, 0, 0);

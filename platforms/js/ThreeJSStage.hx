@@ -161,7 +161,7 @@ class ThreeJSStage extends DisplayObject {
 			scene.remove(transformControls);
 		}
 
-		var ctx : Dynamic = untyped renderer.context;
+		var ctx : Dynamic = untyped __js__("renderer.view.getContext('2d', {desynchronized : true})");
 		var resolution = renderer.resolution;
 
 		ctx.globalAlpha = this.worldAlpha;
