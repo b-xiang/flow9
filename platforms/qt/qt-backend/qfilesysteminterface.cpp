@@ -10,6 +10,11 @@
 #include <QFileInfo>
 #include <QFileDialog>
 
+
+const char *QFileSystemInterface::ENC_UTF8 = "UTF8";
+const char *QFileSystemInterface::ENC_WIN1252 = "WIN1252";
+const char *QFileSystemInterface::SUPPORTED_ENCODINGS[2] = {QFileSystemInterface::ENC_UTF8, QFileSystemInterface::ENC_WIN1252};
+
 char* QFileSystemInterface::doResolveRelativePath(std::string &filename, char* buffer) {
   QString s(filename.c_str());
   QFileInfo fi(s);
@@ -215,8 +220,8 @@ void QFileSystemInterface::doFileRead(const StackSlot &file, std::string readAs,
         RUNNER->EvalFunction(onData, 1, RUNNER->AllocateString(dataUrl));
     } else {
         StackSlot str;
-        if (readEncoding=="UTF8") str = RUNNER->AllocateString(QString(blob));
-        else if (readEncoding=="WIN1252") str = RUNNER->AllocateString(QString::fromLatin1(blob).toUtf8().data())
+        if (readEncoding==ENC_UTF8) str = RUNNER->AllocateString(QString(blob));
+        else if (readEncoding==ENC_WIN1252) str = RUNNER->AllocateString(QString::fromLatin1(blob).toUtf8().data());
         else str = RUNNER->AllocateString("");
         RUNNER->EvalFunction(onData, 1, str);
     }
