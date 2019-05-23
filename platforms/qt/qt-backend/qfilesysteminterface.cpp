@@ -187,7 +187,7 @@ StackSlot QFileSystemInterface::doFileSlice(const StackSlot &file, int offset, i
     return RUNNER->AllocNative(chunkFlowFile);
 }
 
-void QFileSystemInterface::doFileRead(const StackSlot &file, std::string readAs, const StackSlot &onData, const StackSlot &onError)
+void QFileSystemInterface::doFileRead(const StackSlot &file, std::string readAs, std::string readEncoding, const StackSlot &onData, const StackSlot &onError)
 {
     RUNNER_VAR = owner;
     WITH_RUNNER_LOCK_DEFERRED(RUNNER);
@@ -214,7 +214,11 @@ void QFileSystemInterface::doFileRead(const StackSlot &file, std::string readAs,
         QString dataUrl = "data:" + QString::fromStdString(doFileType(file)) + ";base64," + blob.toBase64(QByteArray::Base64Encoding);
         RUNNER->EvalFunction(onData, 1, RUNNER->AllocateString(dataUrl));
     } else {
-        RUNNER->EvalFunction(onData, 1, RUNNER->AllocateString(QString(blob)));
+        StackSlot str;
+        if (readEncoding=="UTF8") str = RUNNER->AllocateString(QString(blob));
+        else if (readEncoding=="WIN1252") str = RUNNER->AllocateString(QString::fromLatin1(blob).toUtf8().data())
+        else str = RUNNER->AllocateString("");
+        RUNNER->EvalFunction(onData, 1, str);
     }
 
     flowFile->getFile()->close();

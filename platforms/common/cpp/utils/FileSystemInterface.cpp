@@ -340,7 +340,17 @@ StackSlot FileSystemInterface::readFile(RUNNER_ARGS)
     RUNNER_PopArgs4(file, as, onDone, onError);
     RUNNER_CheckTag1(TString, as);
 
-    doFileRead(file, encodeUtf8(RUNNER->GetString(as)), onDone, onError);
+    doFileRead(file, encodeUtf8(RUNNER->GetString(as)), "UTF8", onDone, onError);
+
+    RETVOID;
+}
+
+StackSlot FileSystemInterface::readFileEnc(RUNNER_ARGS)
+{
+    RUNNER_PopArgs5(file, as, en, onDone, onError);
+    RUNNER_CheckTag2(TString, as, en);
+
+    doFileRead(file, encodeUtf8(RUNNER->GetString(as)), encodeUtf8(RUNNER->GetString(en)), onDone, onError);
 
     RETVOID;
 }
