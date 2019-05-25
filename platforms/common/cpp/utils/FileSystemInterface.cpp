@@ -64,6 +64,7 @@ NativeFunction *FileSystemInterface::MakeNativeFunction(const char *name, int nu
     TRY_USE_NATIVE_METHOD(FileSystemInterface, fileModifiedNative, 1);
     TRY_USE_NATIVE_METHOD(FileSystemInterface, fileSlice, 3);
     TRY_USE_NATIVE_METHOD(FileSystemInterface, readFile, 4);
+    TRY_USE_NATIVE_METHOD(FileSystemInterface, readFileEnc, 5);
 
     return NULL;
 }

@@ -11,9 +11,6 @@ class QFileSystemInterface : public QObject, public FileSystemInterface
     Q_OBJECT
 
 private:
-    static const char *ENC_UTF8;
-    static const char *ENC_WIN1252;
-
     ByteCodeRunner *owner;
     QtHttpSupport *http_manager;
 
@@ -23,7 +20,6 @@ private:
     int maxSelectFiles;
 
 public:
-    static const char *SUPPORTED_ENCODINGS[2];
     QFileSystemInterface(ByteCodeRunner *owner, QtHttpSupport* http);
 
 protected:
